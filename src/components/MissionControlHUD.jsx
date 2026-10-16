@@ -61,6 +61,12 @@ function ProjectPanel({ body, selection, onSelect, repos }) {
           <div className="label"><FileText size={11} /> PAPER</div>
           <div className="paper-title">{paper.title}</div>
           <div className="paper-venue">{paper.venue}</div>
+          {paper.doi && (
+            <a className="doi" href={`https://doi.org/${paper.doi}`} target="_blank" rel="noreferrer">
+              <span>DOI</span> {paper.doi} <ExternalLink size={10} />
+              {paper.doiLabel && <em>{paper.doiLabel}</em>}
+            </a>
+          )}
         </div>
       )}
 
@@ -153,6 +159,7 @@ function ProfilePanel({ onSelect }) {
                 {p.title}
               </button>
               <div className="paper-venue">{p.venue}</div>
+              {p.doi && <div className="paper-venue">doi:{p.doi}</div>}
               <div className="mini-links">
                 {p.links.map((l) => (
                   <a key={l.url} href={l.url} target="_blank" rel="noreferrer">{l.label} <ExternalLink size={10} /></a>
@@ -161,6 +168,21 @@ function ProfilePanel({ onSelect }) {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section>
+        <h3>Test scores</h3>
+        {profile.tests.map((t) => (
+          <div className="test-card" key={t.name}>
+            <div className="entry-head"><b>{t.name}</b><span>{t.when || ''}</span></div>
+            <div className="test-grid">
+              <div className="stat-box total"><div className="label">TOTAL</div><div className="value sm">{t.total}</div></div>
+              {t.parts.map((x) => (
+                <div className="stat-box" key={x.label}><div className="label">{x.label.toUpperCase()}</div><div className="value sm">{x.value}</div></div>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
 
       <section>

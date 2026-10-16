@@ -263,6 +263,17 @@ button { font-family: inherit; cursor: pointer; }
 .paper-card .label { font-size: 9px; color: var(--amber); letter-spacing: 0.15em; display: flex; gap: 5px; align-items: center; }
 .paper-title { color: var(--text-main); font-size: 12px; line-height: 1.45; margin-top: 5px; font-style: italic; }
 .paper-venue { color: var(--text-dim); font-size: 11px; margin-top: 3px; }
+.paper-card .doi {
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px;
+  color: var(--cyan); font-size: 11px; text-decoration: none; word-break: break-all;
+}
+.paper-card .doi span { font-size: 9px; letter-spacing: 0.12em; border: 1px solid currentColor; padding: 0 4px; border-radius: 2px; }
+.paper-card .doi em { flex-basis: 100%; color: var(--text-dim); font-style: normal; font-size: 10px; }
+.paper-card .doi:hover { text-decoration: underline; }
+.test-card { margin-bottom: 12px; }
+.test-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.test-grid .stat-box { padding: 6px 8px; }
+.test-grid .stat-box.total { grid-column: 1 / -1; }
 
 .moon-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .moon-list button {
