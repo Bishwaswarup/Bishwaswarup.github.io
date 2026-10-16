@@ -209,6 +209,7 @@ button { font-family: inherit; cursor: pointer; }
 .lg-ring { width: 14px; height: 6px; border: 1.5px solid #60a5fa; border-radius: 50%; margin-top: 6px !important; }
 .lg-moon { width: 12px; height: 12px; display: inline-block; background: radial-gradient(circle at 30% 50%, #cbd5e1 3px, transparent 3.5px), radial-gradient(circle at 80% 50%, #cbd5e1 1.5px, transparent 2px); }
 .lg-sat { width: 12px; height: 4px; background: linear-gradient(90deg, #f5a623 40%, #d6dde8 40% 60%, #60a5fa 60%); margin-top: 6px !important; }
+.lg-comet { width: 14px; height: 6px; margin-top: 6px !important; border-radius: 6px 0 0 6px; background: linear-gradient(90deg, #e2e8f0 30%, rgba(167,139,250,0.15)); }
 .lg-inc { width: 14px; height: 2px; background: var(--text-dim); transform: rotate(-20deg); margin-top: 8px !important; }
 .lg-orb { width: 12px; height: 12px; border: 1px dashed var(--text-dim); border-radius: 50%; }
 .lg-cats { flex-wrap: wrap; gap: 6px 12px !important; padding-top: 4px; border-top: 1px solid var(--panel-line); }

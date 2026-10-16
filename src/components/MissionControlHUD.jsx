@@ -9,6 +9,7 @@ import useGithubRepos from '../hooks/useGithubRepos.js';
 
 const groupOf = (b) => {
   if (b.type === 'station') return 'Lab · station';
+  if (b.type === 'comet') return 'Apps & tools · outer orbits';
   if (b.paper) return 'Papers · inner orbits';
   if (b.orbit.a < 28) return 'Research code · middle orbits';
   return 'Apps & tools · outer orbits';
@@ -72,7 +73,7 @@ function ProjectPanel({ body, selection, onSelect, repos }) {
 
       {moons.length > 0 && (
         <section>
-          <h3><Orbit size={12} /> Moons · findings by importance</h3>
+          <h3><Orbit size={12} /> {body.type === 'comet' ? 'Features' : 'Moons · findings by importance'}</h3>
           <ul className="moon-list">
             {moons.map((m) => {
               const on = selection?.moon === m.k;
@@ -122,7 +123,7 @@ function ProjectPanel({ body, selection, onSelect, repos }) {
           <div className="stat-box"><div className="label">a · e</div><div className="value sm">{o.a.toFixed(1)} · {(o.e || 0).toFixed(2)}</div></div>
           <div className="stat-box"><div className="label">INCLINATION</div><div className="value sm">{(o.i || 0).toFixed(1)}°</div></div>
           <div className="stat-box"><div className="label">PERIOD</div><div className="value sm">{periodOf(o.a).toFixed(0)} d</div></div>
-          <div className="stat-box"><div className="label">MOONS · SATS</div><div className="value sm">{body.moons.length} · {body.satellites.length}</div></div>
+          <div className="stat-box"><div className="label">{body.type === 'comet' ? 'FEATURES · SATS' : 'MOONS · SATS'}</div><div className="value sm">{body.moons.length} · {body.satellites.length}</div></div>
         </div>
       </section>
 
@@ -240,6 +241,7 @@ function Legend({ open, setOpen }) {
           <div><span className="lg-ring" /> Ring: the project has a paper or preprint.</div>
           <div><span className="lg-moon" /> Moons: findings and features. Bigger moon = more important result.</div>
           <div><span className="lg-sat" /> Satellites: links (amber = paper/DOI, blue = code).</div>
+          <div><span className="lg-comet" /> Comet: a side project on an eccentric orbit, without moons.</div>
           <div><span className="lg-inc" /> Inclination: how far a project sits from astrodynamics &amp; GNC (the reference plane).</div>
           <div><span className="lg-orb" /> Orbit radius: inner = papers, middle = research code, belt, outer = apps.</div>
           <div className="lg-cats">

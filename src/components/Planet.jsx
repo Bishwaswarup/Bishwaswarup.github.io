@@ -154,19 +154,54 @@ function StationModel({ color, lit }) {
   );
 }
 
+// ---- Comet: nucleus, coma and a tail that always points away from the star ----
+const UP = new THREE.Vector3(0, 1, 0);
+
+function CometModel({ color, lit, tailRef }) {
+  return (
+    <group>
+      <mesh>
+        <icosahedronGeometry args={[0.28, 0]} />
+        <meshStandardMaterial color="#cbd5e1" emissive={color} emissiveIntensity={lit ? 0.8 : 0.35} roughness={0.9} flatShading />
+      </mesh>
+      <mesh scale={2.2}>
+        <sphereGeometry args={[0.28, 24, 24]} />
+        <meshBasicMaterial color={color} transparent opacity={lit ? 0.22 : 0.12} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <group ref={tailRef}>
+        {/* dust tail: wide, soft */}
+        <mesh position={[0, 2.5, 0]}>
+          <cylinderGeometry args={[0.9, 0.18, 5, 24, 1, true]} />
+          <meshBasicMaterial color={color} transparent opacity={lit ? 0.2 : 0.11} side={THREE.DoubleSide}
+            blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
+        {/* ion tail: narrow, bright */}
+        <mesh position={[0, 3.5, 0]}>
+          <cylinderGeometry args={[0.18, 0.06, 7, 12, 1, true]} />
+          <meshBasicMaterial color="#e0f2fe" transparent opacity={lit ? 0.35 : 0.2} side={THREE.DoubleSide}
+            blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 // ---- Planet ---------------------------------------------------------------
 export default function Planet({ body, selection, onSelect, showLabels, focusMode }) {
   const groupRef = useRef();
   const spinRef = useRef();
+  const tailRef = useRef();
   const [hovered, setHovered] = useState(false);
   const color = categories[body.category].color;
   const isStation = body.type === 'station';
-  const R = isStation ? 0.45 : planetRadius(body.importance);
+  const isComet = body.type === 'comet';
+  const R = isStation ? 0.45 : isComet ? 0.3 : planetRadius(body.importance);
   const active = selection?.id === body.id;
   const dimmed = focusMode && !active;
 
   const path = useMemo(() => orbitPath(body.orbit), [body.orbit]);
   const pos = useMemo(() => new THREE.Vector3(), []);
+  const tmpDir = useMemo(() => new THREE.Vector3(), []);
   const tilt = useMemo(() => [((body.orbit.i || 0) * 0.6 + 12) * DEG, 0, (body.orbit.node % 30) * DEG], [body]);
 
   useFrame((_, dt) => {
@@ -176,6 +211,13 @@ export default function Planet({ body, selection, onSelect, showLabels, focusMod
     if (!registry.has(body.id)) registry.set(body.id, new THREE.Vector3());
     registry.get(body.id).copy(pos);
     if (spinRef.current) spinRef.current.rotation.y += dt * 0.35;
+    if (tailRef.current) {
+      // anti-sunward, longer near perihelion (tail length ~ 1/r)
+      const r = pos.length();
+      tailRef.current.quaternion.setFromUnitVectors(UP, tmpDir.copy(pos).normalize());
+      const L = THREE.MathUtils.clamp(14 / r, 0.35, 2.2);
+      tailRef.current.scale.set(0.6 + 0.4 * L, L, 0.6 + 0.4 * L);
+    }
   });
 
   const pick = (e) => {
@@ -193,13 +235,24 @@ export default function Planet({ body, selection, onSelect, showLabels, focusMod
         transparent
         opacity={active ? 0.65 : dimmed ? 0.06 : hovered ? 0.45 : 0.2}
         lineWidth={active ? 1.6 : 1}
-        dashed={body.type === 'dwarf'}
+        dashed={body.type === 'dwarf' || isComet}
         dashSize={0.6}
         gapSize={0.4}
       />
 
       <group ref={groupRef}>
-        {isStation ? (
+        {isComet ? (
+          <group
+            onClick={pick}
+            onPointerOver={(e) => { e.stopPropagation(); setHovered(true); setCursor(true); }}
+            onPointerOut={() => { setHovered(false); setCursor(false); }}
+          >
+            <CometModel color={color} lit={lit} tailRef={tailRef} />
+            <mesh visible={false}>
+              <sphereGeometry args={[0.8, 8, 8]} />
+            </mesh>
+          </group>
+        ) : isStation ? (
           <group
             onClick={pick}
             onPointerOver={(e) => { e.stopPropagation(); setHovered(true); setCursor(true); }}
@@ -242,8 +295,8 @@ export default function Planet({ body, selection, onSelect, showLabels, focusMod
           </group>
         )}
 
-        {/* Moons (findings) and satellites (links) */}
-        {body.moons.map((m, k) => (
+        {/* Moons (findings) and satellites (links); a comet carries no moons */}
+        {!isComet && body.moons.map((m, k) => (
           <Moon
             key={m.name}
             moon={m}

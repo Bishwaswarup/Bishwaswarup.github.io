@@ -507,23 +507,6 @@ export const bodies = [
     satellites: [{ label: 'Code', kind: 'code', url: gh('uvpm-oscillating-plate') }],
   },
 
-  // ----- Dwarf planet: small side project ----------------------------------
-  {
-    id: 'ecg',
-    repoName: 'health_ecg_streamlit_app',
-    type: 'dwarf',
-    name: 'Synthetic ECG Explorer',
-    category: 'ai',
-    status: 'Side project',
-    tagline: 'Educational synthetic-ECG demo',
-    description:
-      'An educational, non-diagnostic Streamlit app that generates synthetic ECG waveforms and shows a classifier trained only on synthetic classes.',
-    stack: ['Python', 'Streamlit'],
-    importance: 1,
-    orbit: { a: 46, e: 0.22, i: 30, node: 45, argp: 90, M0: 10 },
-    moons: [],
-    satellites: [{ label: 'Code', kind: 'code', url: gh('health_ecg_streamlit_app') }],
-  },
 ];
 
 export const planets = bodies;
