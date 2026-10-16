@@ -3,6 +3,7 @@ node_modules/
 
 # build output
 dist/
+Claude outputs/
 
 # local env / OS junk
 .env
