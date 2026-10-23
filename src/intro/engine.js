@@ -1015,56 +1015,105 @@ function drawAstronaut(ctx, g) {
   const lean = p.skid ? -1 : 0;
   const talking = !!g.bubble && g.bubble.anchor === 'player' && p.idle > 0.2;
 
+  // Palette taken from the character sheet: curly black hair, brown skin,
+  // white suit with cyan shoulder stripes, navy gloves/boots, amber chest light.
+  const HAIR = '#242228';
+  const HAIR_HI = '#3d3944';
+  const SKIN = '#d99258';
+  const SKIN_SH = '#b06a3e';
+  const EYE = '#1a1620';
+  const SUIT = '#eef1f5';
+  const SUIT_SH = '#b9c3d3';
+  const ARM = '#dfe5ee';
+  const NAVY = '#1e355f';
+  const STRIPE = '#2bb3c0';
+  const L = lean;
+  const B = bob;
+
   // jetpack flames under the backpack
   if (p.hovering || (g.powers.jet > 0 && air && p.vy < -150)) {
-    px(0, 11 + bob, 2, 2 + (Math.floor(g.t * 20) % 2), COL.amber);
-    px(0, 11 + bob, 1, 1, '#fff3c4');
+    px(0, 12 + B, 2, 2 + (Math.floor(g.t * 20) % 2), COL.amber);
+    px(0, 12 + B, 1, 1, '#fff3c4');
   }
-  // backpack (gets a cyan stripe while jet boots are active)
-  px(0 + lean, 5 + bob, 2, 6, COL.pack);
-  px(0 + lean, 5 + bob, 2, 1, g.powers.jet > 0 ? COL.cyan : '#9aa6bd');
-  // helmet
-  px(1 + lean, 0 + bob, 8, 7, COL.outline);
-  px(2 + lean, 1 + bob, 6, 5, COL.suit);
-  px(2 + lean, 1 + bob, 1, 5, COL.suitShade);
-  px(5 + lean, 2 + bob, 3, 3, COL.visor);
-  // visor glint sweeps across every few seconds
-  const glint = Math.floor((g.t % 3.2) * 10);
-  px(5 + lean + Math.min(2, glint), 2 + bob, 1, 1, glint < 3 ? '#ffffff' : COL.visorHi);
+  // backpack (cyan panel lights up while jet boots are active)
+  px(0 + L, 6 + B, 2, 6, '#d6dce6');
+  px(0 + L, 6 + B, 1, 6, '#aeb8c8');
+  px(1 + L, 8 + B, 1, 2, g.powers.jet > 0 && Math.floor(g.t * 8) % 2 ? '#bffcf5' : STRIPE);
+  // hair: curly mop with tufts on top
+  px(3 + L, -1 + B, 1, 1, HAIR);
+  px(5 + L, -1 + B, 1, 1, HAIR);
+  px(7 + L, -1 + B, 1, 1, HAIR);
+  px(2 + L, 0 + B, 7, 1, HAIR);
+  px(1 + L, 1 + B, 8, 1, HAIR);
+  px(1 + L, 2 + B, 5, 1, HAIR);
+  px(1 + L, 3 + B, 3, 1, HAIR);
+  px(1 + L, 4 + B, 2, 1, HAIR);
+  px(3 + L, 0 + B, 1, 1, HAIR_HI);
+  px(5 + L, 1 + B, 2, 1, HAIR_HI);
+  // face (side view): forehead, ear, eye, nose, chin
+  px(6 + L, 2 + B, 3, 1, SKIN);
+  px(8 + L, 2 + B, 1, 1, HAIR); // fringe curl
+  px(4 + L, 3 + B, 1, 1, SKIN_SH);
+  px(5 + L, 3 + B, 4, 1, SKIN);
+  px(3 + L, 4 + B, 6, 1, SKIN);
+  px(9 + L, 4 + B, 1, 1, SKIN); // nose
+  px(3 + L, 5 + B, 6, 1, SKIN);
+  px(3 + L, 5 + B, 1, 1, SKIN_SH);
+  px(7 + L, 2 + B, 2, 1, HAIR); // brow
+  const blink = (g.t % 3.6) < 0.12 || p.landLock > 0;
+  px(7 + L, 3 + B, 1, 1, blink ? SKIN_SH : '#f2efe8');
+  px(8 + L, 3 + B, 1, 1, blink ? SKIN_SH : EYE);
+  if (p.invuln > 0.6) px(6 + L, 5 + B, 2, 1, SKIN_SH); // wince
+  // collar
+  px(3 + L, 6 + B, 4, 1, NAVY);
   // torso
-  px(2 + lean, 7 + bob, 6, 5, COL.suit);
-  px(2 + lean, 7 + bob, 1, 5, COL.suitShade);
-  px(4 + lean, 8 + bob, 2, 1, g.powers.magnet > 0 && Math.floor(g.t * 6) % 2 ? COL.red : COL.cyan);
-  // arm
+  px(2 + L, 7 + B, 6, 5, SUIT);
+  px(2 + L, 7 + B, 1, 5, SUIT_SH);
+  px(4 + L, 7 + B, 3, 1, STRIPE); // shoulder stripe
+  const chest = g.powers.magnet > 0 && Math.floor(g.t * 6) % 2 ? COL.red : COL.amber;
+  px(5 + L, 9 + B, 2, 1, chest);
+  px(5 + L, 10 + B, 2, 1, NAVY);
+  px(2 + L, 11 + B, 6, 1, NAVY); // belt
+  // near arm, with a navy glove
   if (talking) {
     const wave = Math.floor(g.t * 6) % 2;
-    px(7, 3 + wave, 2, 4, '#cfd6e2');
-  } else if (air) px(6, 5 + bob, 2, 3, '#cfd6e2');
-  else if (running) px(frame < 2 ? 6 : 5, 8 + bob + (frame === 1 || frame === 3 ? 1 : 0), 2, 3, '#cfd6e2');
-  else px(6 + lean, 8 + bob, 2, 3, '#cfd6e2');
-  // legs: near leg in suit white, far leg shaded, so the run cycle reads
+    px(8, 5 + wave, 2, 3, ARM);
+    px(8, 4 + wave, 2, 1, NAVY);
+  } else if (air) {
+    px(7, 7 + B, 2, 2, ARM);
+    px(8, 6 + B, 2, 1, NAVY);
+  } else if (running) {
+    const ax = frame < 2 ? 6 : 4;
+    const ay = 8 + B + (frame === 1 || frame === 3 ? 1 : 0);
+    px(ax, ay, 2, 3, ARM);
+    px(ax, ay + 3, 2, 1, NAVY);
+  } else {
+    px(6 + L, 8 + B, 2, 3, ARM);
+    px(6 + L, 11 + B, 2, 1, NAVY);
+  }
+  // legs: near leg in white, far leg shaded, so the run cycle reads
   if (air) {
-    px(2, 12, 2, 2, COL.suitShade);
-    px(5, 11, 2, 3, COL.suit);
-    px(2, 14, 2, 1, COL.boot);
-    px(5, 14, 3, 1, COL.boot);
+    px(2, 12, 2, 2, SUIT_SH);
+    px(5, 11, 2, 3, SUIT);
+    px(2, 14, 2, 1, NAVY);
+    px(5, 14, 3, 1, NAVY);
   } else if (running) {
     const legs = [[6, 2], [5, 3], [2, 6], [3, 5]][frame]; // [near x, far x]
     const lift = frame === 1 || frame === 3;
-    px(legs[1], lift ? 11 : 12, 2, lift ? 2 : 2, COL.suitShade);
-    px(legs[1], lift ? 13 : 14, 2, 1, COL.boot);
-    px(legs[0], 12, 2, 2, COL.suit);
-    px(legs[0], 14, 3, 1, COL.boot);
+    px(legs[1], lift ? 11 : 12, 2, 2, SUIT_SH);
+    px(legs[1], lift ? 13 : 14, 2, 1, NAVY);
+    px(legs[0], 12, 2, 2, SUIT);
+    px(legs[0], 14, 3, 1, NAVY);
   } else if (p.skid) {
-    px(5, 12, 2, 2, COL.suit);
-    px(6, 14, 3, 1, COL.boot);
-    px(2, 12, 2, 2, COL.suitShade);
-    px(1, 14, 3, 1, COL.boot);
+    px(5, 12, 2, 2, SUIT);
+    px(6, 14, 3, 1, NAVY);
+    px(2, 12, 2, 2, SUIT_SH);
+    px(1, 14, 3, 1, NAVY);
   } else {
-    px(3, 12, 2, 2, COL.suit);
-    px(5, 12, 2, 2, COL.suitShade);
-    px(3, 14, 2, 1, COL.boot);
-    px(5, 14, 3, 1, COL.boot);
+    px(3, 12, 2, 2, SUIT);
+    px(5, 12, 2, 2, SUIT_SH);
+    px(3, 14, 2, 1, NAVY);
+    px(5, 14, 3, 1, NAVY);
   }
 
   // squash/stretch about the feet
@@ -1133,8 +1182,10 @@ function drawRocket(ctx, g) {
   ctx.fillStyle = '#c9fff5';
   ctx.fillRect(x + 8, bodyTop + 9, 1, 1);
   if (g.p.hidden) {
-    // the astronaut's visor in the window
-    ctx.fillStyle = COL.visor;
+    // Bishwa in the window
+    ctx.fillStyle = '#242228';
+    ctx.fillRect(x + 9, bodyTop + 9, 2, 1);
+    ctx.fillStyle = '#d99258';
     ctx.fillRect(x + 9, bodyTop + 10, 2, 2);
   }
   ctx.fillStyle = '#8c96aa';

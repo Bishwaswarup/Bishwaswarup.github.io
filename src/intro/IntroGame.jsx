@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createGame, update, render, anchors, SECTION_NAMES } from './engine.js';
 import { WORLD_H, STARS } from './level.js';
+import Transmission from './Transmission.jsx';
 
 const JUMP_KEYS = new Set([' ', 'Spacebar', 'ArrowUp', 'w', 'W', 'z', 'Z', 'k', 'K']);
 const LEFT_KEYS = new Set(['ArrowLeft', 'a', 'A']);
@@ -54,9 +55,11 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
   const [hud, setHud] = useState({ stars: 0, phase: 'play', count: 3, hint: true, section: 0, magnet: false, jet: false });
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
-  const [comic, setComic] = useState(null); // { urls, i } while the opener plays
-  const comicRef = useRef(null);
-  comicRef.current = comic;
+  // Opening sequence: [optional comic] -> radio transmission -> play.
+  const [scene, setScene] = useState('probe'); // probe | comic | tx | play
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
+  const [comic, setComic] = useState(null); // { urls, i } while the comic plays
 
   // Callbacks live in refs so a parent re-render never restarts the game loop.
   const cb = useRef({ onDone, onReveal });
@@ -70,13 +73,22 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
   }, [reducedMotion]);
 
   const advanceComic = useCallback(() => {
-    setComic((c) => (!c ? c : c.i + 1 >= c.urls.length ? null : { ...c, i: c.i + 1 }));
+    setComic((c) => {
+      if (!c) return c;
+      if (c.i + 1 < c.urls.length) return { ...c, i: c.i + 1 };
+      setScene('tx');
+      return null;
+    });
   }, []);
 
   useEffect(() => {
     let alive = true;
-    probePanels().then((urls) => { if (alive && urls) setComic({ urls, i: 0 }); });
-    return () => { alive = false; };
+    const fallback = setTimeout(() => { if (alive && sceneRef.current === 'probe') setScene('tx'); }, 1500);
+    probePanels().then((urls) => {
+      if (!alive || sceneRef.current !== 'probe') return;
+      if (urls) { setComic({ urls, i: 0 }); setScene('comic'); } else setScene('tx');
+    });
+    return () => { alive = false; clearTimeout(fallback); };
   }, []);
 
   // Auto-advance the comic.
@@ -109,10 +121,11 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
   useEffect(() => {
     const down = (e) => {
       if (e.key === 'Escape') { finish(); return; }
-      if (comicRef.current) {
+      if (sceneRef.current === 'comic') {
         if (ADVANCE_KEYS.has(e.key)) { e.preventDefault(); if (!e.repeat) advanceComic(); }
         return;
       }
+      if (sceneRef.current !== 'play') return; // the transmission handles its own keys
       if (LEFT_KEYS.has(e.key)) input.current.left = true;
       else if (RIGHT_KEYS.has(e.key)) input.current.right = true;
       else if (JUMP_KEYS.has(e.key)) {
@@ -150,7 +163,10 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
       last = now;
       const g = game.current;
       const v = view.current;
-      if (!comicRef.current) update(g, input.current, dt, v);
+      if (sceneRef.current === 'play') update(g, input.current, dt, v);
+      // During the opening the camera sits a little low so Bishwa shows above the
+      // dialogue box; it eases back down once play starts.
+      else if (!touch) g.cam.y = 40;
       ctx.imageSmoothingEnabled = false;
       render(ctx, g, v, reducedMotion);
       placeOverlay(g, v);
@@ -202,7 +218,7 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
 
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [finish, reducedMotion]);
+  }, [finish, reducedMotion, touch]);
 
   // Touch buttons: each tracks its own pointer so left+jump can be held together.
   const hold = (key) => ({
@@ -240,7 +256,7 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
       </div>
       <button className="intro-skip" onClick={finish}>Skip ▸▸</button>
 
-      <div className={`intro-title ${hud.hint && hud.phase === 'play' && !comic ? '' : 'faded'}`}>
+      <div className={`intro-title ${hud.hint && hud.phase === 'play' && scene === 'play' ? '' : 'faded'}`}>
         <div className="intro-name">Bishwaswarup Nayak</div>
         <div className="intro-mission">Mission 00 · reach the launch pad</div>
         <div className="intro-keys">
@@ -266,7 +282,9 @@ export default function IntroGame({ onDone, onReveal, reducedMotion = false }) {
         </div>
       )}
 
-      {touch && hud.phase === 'play' && !comic && (
+      {scene === 'tx' && <Transmission onDone={() => setScene('play')} reducedMotion={reducedMotion} touch={touch} />}
+
+      {touch && hud.phase === 'play' && scene === 'play' && (
         <div className="intro-pad">
           <div className="intro-dpad">
             <button aria-label="Left" {...hold('left')}>◀</button>
