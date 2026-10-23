@@ -175,12 +175,13 @@ function CameraRig({ selection }) {
   return null;
 }
 
-export default function SpaceCanvas({ selection, onSelect, showLabels, reducedMotion }) {
+export default function SpaceCanvas({ selection, onSelect, showLabels, reducedMotion, paused = false }) {
   const focusMode = !!selection && selection.id !== 'profile';
   return (
     <Canvas
       camera={{ position: OVERVIEW.toArray(), fov: 50, near: 0.05, far: 2000 }}
       dpr={[1, 2]}
+      frameloop={paused ? 'demand' : 'always'}
       onPointerMissed={() => onSelect(null)}
     >
       <color attach="background" args={['#04060b']} />

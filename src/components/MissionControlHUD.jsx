@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   X, Github, Star, Radio, ExternalLink, FileText, Archive, Code2, Mail, User,
-  Pause, Play, Tag, Info, ChevronRight, Clock, GitBranch, Orbit,
+  Pause, Play, Tag, Info, ChevronRight, Clock, GitBranch, Orbit, Rocket,
 } from 'lucide-react';
 import { bodies, profile, categories } from '../data/universe.js';
 import { sim, periodOf } from '../lib/kepler.js';
@@ -256,7 +256,7 @@ function Legend({ open, setOpen }) {
   );
 }
 
-export default function MissionControlHUD({ selection, onSelect, onClose, showLabels, setShowLabels, warp, setWarp }) {
+export default function MissionControlHUD({ selection, onSelect, onClose, showLabels, setShowLabels, warp, setWarp, onReplayIntro }) {
   const repos = useGithubRepos();
   const [legendOpen, setLegendOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -329,6 +329,13 @@ export default function MissionControlHUD({ selection, onSelect, onClose, showLa
             <Tag size={11} /> LABELS
           </button>
         </span>
+        {onReplayIntro && (
+          <span className="hide-sm">
+            <button className="toggle" onClick={onReplayIntro} title="Play the intro again">
+              <Rocket size={11} /> INTRO
+            </button>
+          </span>
+        )}
         <span className="hide-sm">TARGET <b>{active ? active.name.toUpperCase() : selection?.id === 'profile' ? 'DOSSIER' : 'FREE CAM'}</b></span>
       </div>
 

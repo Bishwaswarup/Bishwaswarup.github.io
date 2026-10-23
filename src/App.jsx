@@ -1,8 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SpaceCanvas from './components/SpaceCanvas.jsx';
 import MissionControlHUD from './components/MissionControlHUD.jsx';
 import { bodies } from './data/universe.js';
 import { sim } from './lib/kepler.js';
+import IntroGame from './intro/IntroGame.jsx';
+
+const INTRO_KEY = 'bn:intro-done:v1';
+
+// First visit plays the intro; returning visitors go straight in.
+// ?intro forces it, ?nointro skips it.
+function shouldShowIntro() {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    if (q.has('intro')) return true;
+    if (q.has('nointro')) return false;
+    return window.localStorage.getItem(INTRO_KEY) !== '1';
+  } catch {
+    return true;
+  }
+}
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -13,6 +29,14 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(true);
   const [reducedMotion] = useState(prefersReducedMotion);
   const [warp, setWarpState] = useState(() => (prefersReducedMotion() ? 0 : 1));
+  const [intro, setIntro] = useState(shouldShowIntro);
+  const introRef = useRef(intro);
+  introRef.current = intro;
+
+  const endIntro = useCallback(() => {
+    try { window.localStorage.setItem(INTRO_KEY, '1'); } catch { /* storage unavailable */ }
+    setIntro(false);
+  }, []);
 
   const setWarp = useCallback((w) => {
     sim.warp = w;
@@ -25,7 +49,7 @@ export default function App() {
   // Keyboard: ← / → cycle bodies, P opens the dossier, Esc returns to overview.
   useEffect(() => {
     const onKey = (e) => {
-      if (e.target.closest?.('input, textarea')) return;
+      if (introRef.current || e.target.closest?.('input, textarea')) return;
       if (e.key === 'Escape') setSelection(null);
       else if (e.key === 'p' || e.key === 'P') setSelection({ id: 'profile' });
       else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -52,6 +76,7 @@ export default function App() {
           onSelect={select}
           showLabels={showLabels}
           reducedMotion={reducedMotion}
+          paused={intro}
         />
       </div>
       <MissionControlHUD
@@ -62,7 +87,9 @@ export default function App() {
         setShowLabels={setShowLabels}
         warp={warp}
         setWarp={setWarp}
+        onReplayIntro={() => setIntro(true)}
       />
+      {intro && <IntroGame onDone={endIntro} reducedMotion={reducedMotion} />}
     </div>
   );
 }
