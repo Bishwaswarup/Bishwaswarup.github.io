@@ -30,12 +30,18 @@ export default function App() {
   const [reducedMotion] = useState(prefersReducedMotion);
   const [warp, setWarpState] = useState(() => (prefersReducedMotion() ? 0 : 1));
   const [intro, setIntro] = useState(shouldShowIntro);
+  // While the intro covers the screen the 3D layer is hidden (it still mounts and
+  // loads underneath); it is revealed as the intro starts fading out.
+  const [covered, setCovered] = useState(intro);
   const introRef = useRef(intro);
   introRef.current = intro;
 
+  const revealSite = useCallback(() => setCovered(false), []);
+  const replayIntro = useCallback(() => { setIntro(true); setCovered(true); }, []);
   const endIntro = useCallback(() => {
     try { window.localStorage.setItem(INTRO_KEY, '1'); } catch { /* storage unavailable */ }
     setIntro(false);
+    setCovered(false);
   }, []);
 
   const setWarp = useCallback((w) => {
@@ -70,13 +76,13 @@ export default function App() {
 
   return (
     <div className="app-root">
-      <div className="canvas-layer">
+      <div className="canvas-layer" style={covered ? { visibility: 'hidden' } : undefined}>
         <SpaceCanvas
           selection={selection}
           onSelect={select}
           showLabels={showLabels}
           reducedMotion={reducedMotion}
-          paused={intro}
+          paused={covered}
         />
       </div>
       <MissionControlHUD
@@ -87,9 +93,9 @@ export default function App() {
         setShowLabels={setShowLabels}
         warp={warp}
         setWarp={setWarp}
-        onReplayIntro={() => setIntro(true)}
+        onReplayIntro={replayIntro}
       />
-      {intro && <IntroGame onDone={endIntro} reducedMotion={reducedMotion} />}
+      {intro && <IntroGame onReveal={revealSite} onDone={endIntro} reducedMotion={reducedMotion} />}
     </div>
   );
 }

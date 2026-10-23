@@ -402,14 +402,80 @@ ol.papers { margin: 0; padding-left: 18px; display: flex; flex-direction: column
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
-.intro-stars {
+.intro-hud {
   position: absolute;
-  top: max(16px, env(safe-area-inset-top));
+  top: max(14px, env(safe-area-inset-top));
   left: 16px;
-  font-size: 12px;
-  color: #ffd75e;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
   text-shadow: 2px 2px 0 #000;
 }
+.intro-stars { font-size: 12px; color: #ffd75e; }
+.intro-section { font-size: 8px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+.intro-power { display: flex; align-items: center; gap: 8px; font-size: 8px; text-transform: uppercase; }
+.intro-power.magnet { color: var(--red-alert); }
+.intro-power.jet { color: var(--cyan); }
+.intro-power i { display: block; width: 64px; height: 6px; border: 2px solid currentColor; background: #000; }
+.intro-power b { display: block; height: 100%; background: currentColor; transform-origin: left; }
+
+/* comic speech bubble, positioned from the game loop */
+.intro-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  --tail: 0px;
+  max-width: min(320px, 70vw);
+  padding: 10px 12px;
+  margin-top: -14px;
+  background: #fffdf3;
+  color: #111;
+  border: 3px solid #111;
+  border-radius: 14px;
+  font-size: clamp(9px, 1.25vw, 13px);
+  line-height: 1.55;
+  text-align: center;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  white-space: normal;
+  width: max-content;
+  will-change: transform, opacity;
+}
+.intro-bubble::after {
+  content: '';
+  position: absolute;
+  left: calc(50% + var(--tail) - 7px);
+  bottom: -12px;
+  border: 7px solid transparent;
+  border-top: 9px solid #111;
+  border-bottom: 0;
+}
+.intro-bubble::before {
+  content: '';
+  position: absolute;
+  left: calc(50% + var(--tail) - 4px);
+  bottom: -7px;
+  border: 4px solid transparent;
+  border-top: 6px solid #fffdf3;
+  border-bottom: 0;
+  z-index: 1;
+}
+
+/* comic sound words (BONK!, HISS!, +1) */
+.intro-pop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: clamp(10px, 1.6vw, 16px);
+  color: #ffd75e;
+  -webkit-text-stroke: 1px #111;
+  text-shadow: 3px 3px 0 #111;
+  pointer-events: none;
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+.intro-pop[data-kind='plus'] { font-size: clamp(8px, 1vw, 10px); color: #fff6c9; -webkit-text-stroke: 0; text-shadow: 2px 2px 0 #000; }
 .intro-skip {
   position: absolute;
   top: max(10px, env(safe-area-inset-top));
@@ -461,7 +527,40 @@ ol.papers { margin: 0; padding-left: 18px; display: flex; flex-direction: column
   pointer-events: none;
   animation: intro-pop 0.6s ease-out;
 }
-.intro-liftoff small { display: block; margin-top: 16px; font-size: clamp(9px, 1.4vw, 12px); color: #ffd75e; }
+.intro-liftoff small { display: block; margin-top: 22px; font-size: clamp(9px, 1.4vw, 12px); color: #ffd75e; }
+.intro-burst {
+  display: inline-block;
+  padding: 0.9em 1.3em;
+  color: #111;
+  text-shadow: none;
+  background: #ffd75e;
+  clip-path: polygon(50% 0, 61% 18%, 82% 6%, 78% 30%, 100% 34%, 84% 52%, 98% 72%, 74% 72%, 70% 96%, 52% 80%, 32% 100%, 28% 76%, 4% 80%, 16% 58%, 0 40%, 22% 32%, 16% 8%, 38% 18%);
+}
+
+/* optional comic opener */
+.intro-comic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 4, 10, 0.92);
+  cursor: pointer;
+  padding: 16px;
+}
+.intro-panel {
+  margin: 0;
+  width: min(720px, 92vw);
+  background: #fffdf3;
+  border: 4px solid #111;
+  box-shadow: 8px 8px 0 #000;
+  transform: rotate(-1deg);
+  animation: intro-panel-in 0.45s ease-out;
+}
+.intro-panel img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: cover; border-bottom: 4px solid #111; }
+.intro-panel figcaption { padding: 12px 14px; color: #111; font-size: clamp(9px, 1.4vw, 12px); line-height: 1.6; background: #ffd75e; }
+.intro-comic-hint { position: absolute; bottom: 24px; left: 0; right: 0; text-align: center; font-size: 9px; color: var(--text-dim); }
+@keyframes intro-panel-in { from { transform: translateY(24px) rotate(-4deg); opacity: 0; } to { transform: rotate(-1deg); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .intro-panel { animation: none; } }
 @keyframes intro-pop { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .intro-count, .intro-liftoff { animation: none; } }
 .intro-pad {
